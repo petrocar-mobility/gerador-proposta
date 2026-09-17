@@ -18,9 +18,9 @@
     label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px;color:#35445c}
     input{width:100%;height:46px;border:1px solid #ccd8e5;border-radius:11px;padding:0 13px;font-size:16px;outline:none}
     input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,159,227,.12)}
-    .region{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .region button{height:48px;border:1px solid #c6d6e7;background:#fff;border-radius:11px;font-weight:800;color:var(--navy);cursor:pointer}
-    .region button.active{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff;border-color:transparent}
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .segmented button{height:48px;border:1px solid #c6d6e7;background:#fff;border-radius:11px;font-weight:800;color:var(--navy);cursor:pointer}
+    .segmented button.active{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff;border-color:transparent}
     .actions{display:grid;gap:10px;margin-top:18px}
     .primary,.secondary{height:50px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
     .primary{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff}
@@ -37,7 +37,7 @@
     <div class="top">
       <div>
         <h1>Gerador de Proposta Petrocar Mobility</h1>
-        <p class="sub">Preencha os dados, escolha Sudeste ou Nacional e gere a proposta em PDF na hora.</p>
+        <p class="sub">Preencha os dados, escolha região e adesão, e gere a proposta em PDF ou imagem.</p>
       </div>
     </div>
 
@@ -50,9 +50,15 @@
         <input id="data" type="date" />
 
         <label>Região da proposta</label>
-        <div class="region">
+        <div class="segmented" id="regiaoGroup">
           <button id="btnSudeste" class="active" type="button">Sudeste</button>
           <button id="btnNacional" type="button">Nacional</button>
+        </div>
+
+        <label>Valor da adesão</label>
+        <div class="segmented" id="adesaoGroup">
+          <button id="btn149" class="active" type="button">R$ 149,90</button>
+          <button id="btn99" type="button">R$ 99,90</button>
         </div>
 
         <label for="consultor">Nome do consultor</label>
@@ -67,10 +73,10 @@
           <button id="png" class="secondary" type="button">Baixar imagem</button>
         </div>
 
-        <p class="hint">Sudeste usa a arte com 4 planos. Nacional usa a arte com 2 planos. O nome do cliente e a data entram no topo, e o nome/telefone do consultor entram centralizados no quadro branco inferior.</p>
+        <p class="hint">O sistema identifica automaticamente a arte correta conforme a combinação escolhida: Sudeste/Nacional + adesão R$ 149,90 ou R$ 99,90.</p>
       </section>
 
-      <section class="preview"><canvas id="canvas" width="1086" height="1536"></canvas></section>
+      <section class="preview"><canvas id="canvas" width="794" height="1123"></canvas></section>
     </div>
   </div>
 
@@ -84,19 +90,33 @@
     const telefone = document.getElementById('telefone');
     const btnSudeste = document.getElementById('btnSudeste');
     const btnNacional = document.getElementById('btnNacional');
-    let regiao = 'sudeste';
+    const btn149 = document.getElementById('btn149');
+    const btn99 = document.getElementById('btn99');
 
-    const imgs = { sudeste: new Image(), nacional: new Image() };
-    imgs.sudeste.src = 'sudeste.png';
-    imgs.nacional.src = 'nacional.png';
+    let regiao = 'sudeste';
+    let adesao = '149';
+
+    const imageFiles = {
+      'sudeste_149': 'sudeste-149.png',
+      'sudeste_99': 'sudeste-99.png',
+      'nacional_149': 'nacional-149.png',
+      'nacional_99': 'nacional-99.png'
+    };
+
+    const imgs = {};
+    Object.entries(imageFiles).forEach(([key, src]) => {
+      const img = new Image();
+      img.src = src;
+      imgs[key] = img;
+    });
 
     const POS = {
-      width: 1086,
-      height: 1536,
-      nomeCliente: { x: 405, y: 311, maxWidth: 235, font: 19, min: 12, color: '#1f2430', weight: 600, align:'left' },
-      data: { x: 738, y: 311, maxWidth: 150, font: 19, min: 12, color: '#1f2430', weight: 600, align:'left' },
-      nomeConsultor: { x: 842, y: 1438, maxWidth: 300, font: 31, min: 17, color: '#1b3f8a', weight: 700, align:'center' },
-      telefone: { x: 842, y: 1480, maxWidth: 305, font: 25, min: 15, color: '#1b3f8a', weight: 700, align:'center' }
+      width: 794,
+      height: 1123,
+      nomeCliente: { x: 272, y: 286, maxWidth: 250, font: 15, min: 10, color: '#1f2430', weight: 600, align:'left' },
+      data: { x: 563, y: 286, maxWidth: 130, font: 15, min: 10, color: '#1f2430', weight: 600, align:'left' },
+      nomeConsultor: { x: 628, y: 1058, maxWidth: 205, font: 20, min: 12, color: '#1b3f8a', weight: 700, align:'center' },
+      telefone: { x: 628, y: 1082, maxWidth: 210, font: 17, min: 11, color: '#1b3f8a', weight: 700, align:'center' }
     };
 
     function today(){
@@ -105,8 +125,6 @@
       return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
     }
     data.value = today();
-    consultor.value = '';
-    telefone.value = '';
 
     function fmtDate(v){
       if(!v) return '';
@@ -116,6 +134,10 @@
 
     function safeName(v){
       return (v || 'cliente').trim().replace(/[^a-z0-9áéíóúãõç _-]/gi,'').replace(/\s+/g,'-').toLowerCase() || 'cliente';
+    }
+
+    function currentKey(){
+      return `${regiao}_${adesao}`;
     }
 
     function fitFont(text, maxWidth, startSize, minSize, weight){
@@ -141,13 +163,14 @@
     }
 
     function draw(){
-      const img = imgs[regiao];
+      const img = imgs[currentKey()];
       if(!img.complete){ img.onload = draw; return; }
       canvas.width = POS.width;
       canvas.height = POS.height;
       ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, POS.width, POS.height);
-
       drawText((cliente.value || '').trim(), POS.nomeCliente);
       drawText(fmtDate(data.value), POS.data);
       drawText((consultor.value || '').trim(), POS.nomeConsultor);
@@ -162,19 +185,30 @@
       btnNacional.classList.remove('active');
       draw();
     };
-
     btnNacional.onclick = () => {
       regiao = 'nacional';
       btnNacional.classList.add('active');
       btnSudeste.classList.remove('active');
       draw();
     };
+    btn149.onclick = () => {
+      adesao = '149';
+      btn149.classList.add('active');
+      btn99.classList.remove('active');
+      draw();
+    };
+    btn99.onclick = () => {
+      adesao = '99';
+      btn99.classList.add('active');
+      btn149.classList.remove('active');
+      draw();
+    };
 
     document.getElementById('png').onclick = () => {
       draw();
       const a = document.createElement('a');
-      a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}.png`;
-      a.href = canvas.toDataURL('image/png', 1);
+      a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.png`;
+      a.href = canvas.toDataURL('image/png', 1.0);
       a.click();
     };
 
@@ -186,13 +220,12 @@
       }
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
-      pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}.pdf`);
+      pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`);
     };
 
-    imgs.sudeste.onload = draw;
-    imgs.nacional.onload = draw;
+    Object.values(imgs).forEach(img => img.onload = draw);
     draw();
   </script>
 </body>
