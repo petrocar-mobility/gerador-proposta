@@ -67,7 +67,7 @@
 
         <label for="adesaoValor">Valor da adesão</label>
         <input id="adesaoValor" type="text" inputmode="decimal" placeholder="Ex.: 149,90" autocomplete="off" />
-        <div class="mini">O valor fica centralizado em azul e negrito em todos os quadradinhos brancos de <strong>INVESTIMENTO INICIAL</strong>.</div>
+        <div class="mini">O valor fica centralizado em azul e negrito nos quadradinhos brancos originais de <strong>INVESTIMENTO INICIAL</strong>, sem criar caixa branca extra.</div>
 
         <label for="consultor">Nome do consultor</label>
         <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
@@ -185,24 +185,6 @@
       targetCtx.restore();
     }
 
-    function roundRect(targetCtx, x, y, w, h, r, fillStyle) {
-      targetCtx.save();
-      targetCtx.beginPath();
-      targetCtx.moveTo(x + r, y);
-      targetCtx.lineTo(x + w - r, y);
-      targetCtx.quadraticCurveTo(x + w, y, x + w, y + r);
-      targetCtx.lineTo(x + w, y + h - r);
-      targetCtx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      targetCtx.lineTo(x + r, y + h);
-      targetCtx.quadraticCurveTo(x, y + h, x, y + h - r);
-      targetCtx.lineTo(x, y + r);
-      targetCtx.quadraticCurveTo(x, y, x + r, y);
-      targetCtx.closePath();
-      targetCtx.fillStyle = fillStyle;
-      targetCtx.fill();
-      targetCtx.restore();
-    }
-
     function normalizeMoney(raw) {
       let value = String(raw || '').trim();
       if (!value) return '';
@@ -241,7 +223,6 @@
       const display = `R$ ${value}`;
       const boxes = LAYOUT.adesao[regiao];
       boxes.forEach(box => {
-        roundRect(targetCtx, box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1, LAYOUT.adesao.radius, LAYOUT.adesao.fill);
         drawText(targetCtx, display, {
           x: box.x,
           y: box.y,
