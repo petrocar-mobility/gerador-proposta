@@ -69,7 +69,7 @@
         <div class="mini">O nome e o telefone/WhatsApp entram centralizados no quadro branco inferior.</div>
 
         <div class="actions">
-          <button id="pdf" class="primary" type="button">Gerar PDF</button>
+          <button id="pdf" class="primary" type="button">Compartilhar PDF</button>
           <button id="png" class="secondary" type="button">Baixar imagem</button>
         </div>
 
@@ -252,7 +252,7 @@
       a.click();
     };
 
-    document.getElementById('pdf').onclick = () => {
+    document.getElementById('pdf').onclick = async () => {
       if(!window.jspdf){
         alert('Não foi possível carregar o gerador de PDF. Verifique sua internet e tente novamente.');
         return;
@@ -263,7 +263,25 @@
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
       const imgData = exportCanvas.toDataURL('image/png', 1.0);
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'NONE');
-      pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`);
+      const fileName = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`;
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      // Compartilha somente o PDF. Não inclua title, text ou url aqui:
+      // no iPhone, qualquer URL blob enviada junto aparece como “1 Link e 1 Documento”
+      // e pode impedir o WhatsApp de receber corretamente o anexo.
+      if(navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })){
+        try {
+          await navigator.share({ files: [pdfFile] });
+          return;
+        } catch(error) {
+          // O cancelamento feito pelo próprio usuário não é um erro.
+          if(error && error.name === 'AbortError') return;
+        }
+      }
+
+      // Alternativa para navegadores sem compartilhamento de arquivos.
+      pdf.save(fileName);
     };
 
     Object.values(imgs).forEach(img => img.onload = draw);
