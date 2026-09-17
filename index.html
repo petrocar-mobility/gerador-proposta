@@ -56,10 +56,10 @@
         </div>
 
         <label for="consultor">Nome do consultor</label>
-        <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
+        <input id="consultor" type="text" placeholder="Ex.: Nome do consultor" autocomplete="off" />
 
         <label for="telefone">Telefone do consultor / WhatsApp</label>
-        <input id="telefone" type="text" placeholder="Ex.: (22) 99830-2121" autocomplete="off" />
+        <input id="telefone" type="text" placeholder="Ex.: (22) 99999-9999" autocomplete="off" />
         <div class="mini">O nome e o telefone/WhatsApp entram centralizados no quadro branco inferior.</div>
 
         <div class="actions">
@@ -105,8 +105,8 @@
       return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
     }
     data.value = today();
-    consultor.value = 'Karen Carvalho';
-    telefone.value = '(22) 99830-2121';
+    consultor.value = '';
+    telefone.value = '';
 
     function fmtDate(v){
       if(!v) return '';
