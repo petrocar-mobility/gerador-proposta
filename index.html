@@ -257,12 +257,16 @@
         alert('Não foi possível carregar o gerador de PDF. Verifique sua internet e tente novamente.');
         return;
       }
-      const exportCanvas = renderToCanvas(2);
+      // Para PDF, a resolução original já é suficiente para leitura e impressão.
+      // Evita gerar um arquivo gigante no iPhone.
+      const exportCanvas = renderToCanvas(1);
       if(!exportCanvas) return;
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
-      const imgData = exportCanvas.toDataURL('image/png', 1.0);
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'NONE');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+      // JPEG reduz drasticamente o tamanho. PNG sem compressão fazia o PDF chegar
+      // a mais de 100 MB e o WhatsApp não conseguia processar o documento.
+      const imgData = exportCanvas.toDataURL('image/jpeg', 0.84);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
       const fileName = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`;
       const pdfBlob = pdf.output('blob');
       const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
