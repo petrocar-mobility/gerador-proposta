@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Gerador de Proposta | Petrocar Mobility</title>
+  <style>
+    :root{--blue:#009fe3;--navy:#123a78;--bg:#eef5fb;--card:#fff;--text:#152238}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1220px;margin:0 auto;padding:24px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    h1{font-size:28px;margin:0;color:var(--navy)}
+    .sub{margin:5px 0 0;color:#637083;font-size:14px}
+    .panel{display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start}
+    .controls,.preview{background:var(--card);border-radius:18px;box-shadow:0 10px 30px rgba(14,43,78,.10)}
+    .controls{padding:20px;position:sticky;top:16px}
+    label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px;color:#35445c}
+    input{width:100%;height:46px;border:1px solid #ccd8e5;border-radius:11px;padding:0 13px;font-size:16px;outline:none}
+    input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,159,227,.12)}
+    .region{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .region button{height:48px;border:1px solid #c6d6e7;background:#fff;border-radius:11px;font-weight:800;color:var(--navy);cursor:pointer}
+    .region button.active{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff;border-color:transparent}
+    .actions{display:grid;gap:10px;margin-top:18px}
+    .primary,.secondary{height:50px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
+    .primary{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff}
+    .secondary{background:#edf5fc;color:var(--navy)}
+    .hint{font-size:12px;line-height:1.5;color:#738197;margin-top:12px}
+    .preview{padding:14px;overflow:auto}
+    canvas{display:block;width:100%;height:auto;border-radius:10px;background:#fff}
+    .mini{font-size:12px;color:#607188;margin-top:6px}
+    @media(max-width:900px){.wrap{padding:14px}.panel{grid-template-columns:1fr}.controls{position:static}.top{align-items:flex-start}h1{font-size:22px}.preview{padding:8px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Gerador de Proposta Petrocar Mobility</h1>
+        <p class="sub">Preencha os dados, escolha Sudeste ou Nacional e gere a proposta em PDF na hora.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <section class="controls">
+        <label for="cliente">Nome do cliente</label>
+        <input id="cliente" type="text" placeholder="Ex.: João da Silva" autocomplete="off" />
+
+        <label for="data">Data</label>
+        <input id="data" type="date" />
+
+        <label>Região da proposta</label>
+        <div class="region">
+          <button id="btnSudeste" class="active" type="button">Sudeste</button>
+          <button id="btnNacional" type="button">Nacional</button>
+        </div>
+
+        <label for="consultor">Nome do consultor</label>
+        <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
+
+        <label for="telefone">Telefone do consultor</label>
+        <input id="telefone" type="text" placeholder="Ex.: (22) 99830-2121" autocomplete="off" />
+        <div class="mini">O nome entra na faixa azul inferior em branco, e o telefone entra logo abaixo ao lado do ícone do WhatsApp.</div>
+
+        <div class="actions">
+          <button id="pdf" class="primary" type="button">Gerar PDF</button>
+          <button id="png" class="secondary" type="button">Baixar imagem</button>
+        </div>
+
+        <p class="hint">Sudeste usa a arte com 4 planos. Nacional usa a arte com 2 planos. O nome do cliente e a data entram no topo, e o nome/telefone do consultor entram automaticamente na faixa azul inferior.</p>
+      </section>
+
+      <section class="preview"><canvas id="canvas" width="1086" height="1536"></canvas></section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const cliente = document.getElementById('cliente');
+    const data = document.getElementById('data');
+    const consultor = document.getElementById('consultor');
+    const telefone = document.getElementById('telefone');
+    const btnSudeste = document.getElementById('btnSudeste');
+    const btnNacional = document.getElementById('btnNacional');
+    let regiao = 'sudeste';
+
+    const imgs = { sudeste: new Image(), nacional: new Image() };
+    imgs.sudeste.src = 'sudeste.png';
+    imgs.nacional.src = 'nacional.png';
+
+    const POS = {
+      width: 1086,
+      height: 1536,
+      nomeCliente: { x: 405, y: 311, maxWidth: 235, font: 19, min: 12, color: '#1f2430', weight: 600 },
+      data: { x: 738, y: 311, maxWidth: 150, font: 19, min: 12, color: '#1f2430', weight: 600 },
+      nomeConsultor: { x: 792, y: 1431, maxWidth: 235, font: 24, min: 15, color: '#ffffff', weight: 700 },
+      telefone: { x: 792, y: 1472, maxWidth: 245, font: 20, min: 13, color: '#ffffff', weight: 700 }
+    };
+
+    function today(){
+      const d = new Date();
+      const z = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+    }
+    data.value = today();
+    consultor.value = 'Karen Carvalho';
+    telefone.value = '(22) 99830-2121';
+
+    function fmtDate(v){
+      if(!v) return '';
+      const [y,m,d] = v.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function safeName(v){
+      return (v || 'cliente').trim().replace(/[^a-z0-9áéíóúãõç _-]/gi,'').replace(/\s+/g,'-').toLowerCase() || 'cliente';
+    }
+
+    function fitFont(text, maxWidth, startSize, minSize, weight){
+      let size = startSize;
+      while(size > minSize){
+        ctx.font = `${weight || 600} ${size}px Arial`;
+        if(ctx.measureText(text).width <= maxWidth) break;
+        size--;
+      }
+      return size;
+    }
+
+    function drawText(text, opts){
+      if(!text) return;
+      const size = fitFont(text, opts.maxWidth, opts.font, opts.min, opts.weight);
+      ctx.font = `${opts.weight || 600} ${size}px Arial`;
+      ctx.fillStyle = opts.color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, opts.x, opts.y);
+    }
+
+    function draw(){
+      const img = imgs[regiao];
+      if(!img.complete){ img.onload = draw; return; }
+      canvas.width = POS.width;
+      canvas.height = POS.height;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img, 0, 0, POS.width, POS.height);
+
+      drawText((cliente.value || '').trim(), POS.nomeCliente);
+      drawText(fmtDate(data.value), POS.data);
+      drawText((consultor.value || '').trim(), POS.nomeConsultor);
+      drawText((telefone.value || '').trim(), POS.telefone);
+    }
+
+    [cliente, data, consultor, telefone].forEach(el => el.addEventListener('input', draw));
+
+    btnSudeste.onclick = () => {
+      regiao = 'sudeste';
+      btnSudeste.classList.add('active');
+      btnNacional.classList.remove('active');
+      draw();
+    };
+
+    btnNacional.onclick = () => {
+      regiao = 'nacional';
+      btnNacional.classList.add('active');
+      btnSudeste.classList.remove('active');
+      draw();
+    };
+
+    document.getElementById('png').onclick = () => {
+      draw();
+      const a = document.createElement('a');
+      a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}.png`;
+      a.href = canvas.toDataURL('image/png', 1);
+      a.click();
+    };
+
+    document.getElementById('pdf').onclick = () => {
+      draw();
+      if(!window.jspdf){
+        alert('Não foi possível carregar o gerador de PDF. Verifique sua internet e tente novamente.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}.pdf`);
+    };
+
+    imgs.sudeste.onload = draw;
+    imgs.nacional.onload = draw;
+    draw();
+  </script>
+</body>
+</html>
