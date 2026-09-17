@@ -119,26 +119,26 @@
     });
 
     const LAYOUT = {
-      cliente: { x: 1040, y: 706, maxWidth: 520, font: 42, min: 20, color: '#1f2430', weight: 700, align: 'center' },
-      data: { x: 1770, y: 706, maxWidth: 250, font: 34, min: 18, color: '#1f2430', weight: 700, align: 'center' },
+      cliente: { x: 1040, y: 760, maxWidth: 620, font: 58, min: 24, color: '#1f2430', weight: 700, align: 'center' },
+      data: { x: 1770, y: 760, maxWidth: 340, font: 48, min: 22, color: '#1f2430', weight: 700, align: 'center' },
       consultor: { x: 1917, y: 3342, maxWidth: 450, font: 66, min: 28, color: '#1b3f8a', weight: 700, align: 'center' },
       telefone: { x: 1917, y: 3420, maxWidth: 450, font: 52, min: 20, color: '#1b3f8a', weight: 700, align: 'center' },
       adesao: {
         textColor: '#1452ad',
-        fill: '#ffffff',
-        radius: 12,
-        font: 48,
+        font: 54,
         min: 20,
-        maxWidth: 290,
+        valueMaxWidth: 185,
+        valueXOffset: 127,
+        valueYOffset: 103,
         sudeste: [
-          { x: 350,  y: 2564, x1: 153,  y1: 2482, x2: 492,  y2: 2602 },
-          { x: 961,  y: 2564, x1: 764,  y1: 2482, x2: 1103, y2: 2602 },
-          { x: 1573, y: 2564, x1: 1376, y1: 2482, x2: 1715, y2: 2602 },
-          { x: 2185, y: 2564, x1: 1988, y1: 2482, x2: 2327, y2: 2602 }
+          { x1: 153,  y1: 2482 },
+          { x1: 764,  y1: 2482 },
+          { x1: 1376, y1: 2482 },
+          { x1: 1988, y1: 2482 }
         ],
         nacional: [
-          { x: 961,  y: 2564, x1: 764,  y1: 2482, x2: 1103, y2: 2602 },
-          { x: 1573, y: 2564, x1: 1376, y1: 2482, x2: 1715, y2: 2602 }
+          { x1: 764,  y1: 2482 },
+          { x1: 1376, y1: 2482 }
         ]
       }
     };
@@ -220,19 +220,18 @@
     function renderAdesaoBoxes(targetCtx) {
       const value = normalizeMoney(adesaoValor.value);
       if (!value) return;
-      const display = value;
       const boxes = LAYOUT.adesao[regiao];
       boxes.forEach(box => {
-        drawText(targetCtx, display, {
-          x: box.x,
-          y: box.y,
-          maxWidth: LAYOUT.adesao.maxWidth,
-          font: LAYOUT.adesao.font,
-          min: LAYOUT.adesao.min,
-          color: LAYOUT.adesao.textColor,
-          weight: 700,
-          align: 'center'
-        });
+        const x = box.x1 + LAYOUT.adesao.valueXOffset;
+        const y = box.y1 + LAYOUT.adesao.valueYOffset;
+        const size = fitFont(targetCtx, value, LAYOUT.adesao.valueMaxWidth, LAYOUT.adesao.font, LAYOUT.adesao.min, 700);
+        targetCtx.save();
+        targetCtx.font = `700 ${size}px Arial`;
+        targetCtx.fillStyle = LAYOUT.adesao.textColor;
+        targetCtx.textBaseline = 'middle';
+        targetCtx.textAlign = 'left';
+        targetCtx.fillText(value, x, y);
+        targetCtx.restore();
       });
     }
 
