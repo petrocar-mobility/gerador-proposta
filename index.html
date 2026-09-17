@@ -58,16 +58,16 @@
         <label for="consultor">Nome do consultor</label>
         <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
 
-        <label for="telefone">Telefone do consultor / WhatsApp</label>
+        <label for="telefone">Telefone do consultor</label>
         <input id="telefone" type="text" placeholder="Ex.: (22) 99830-2121" autocomplete="off" />
-        <div class="mini">O nome e o telefone/WhatsApp entram centralizados no quadro branco inferior.</div>
+        <div class="mini">O nome entra na faixa azul inferior em branco, e o telefone entra logo abaixo ao lado do ícone do WhatsApp.</div>
 
         <div class="actions">
           <button id="pdf" class="primary" type="button">Gerar PDF</button>
           <button id="png" class="secondary" type="button">Baixar imagem</button>
         </div>
 
-        <p class="hint">Sudeste usa a arte com 4 planos. Nacional usa a arte com 2 planos. O nome do cliente e a data entram no topo, e o nome/telefone do consultor entram centralizados no quadro branco inferior.</p>
+        <p class="hint">Sudeste usa a arte com 4 planos. Nacional usa a arte com 2 planos. O nome do cliente e a data entram no topo, e o nome/telefone do consultor entram automaticamente na faixa azul inferior.</p>
       </section>
 
       <section class="preview"><canvas id="canvas" width="1086" height="1536"></canvas></section>
@@ -93,10 +93,10 @@
     const POS = {
       width: 1086,
       height: 1536,
-      nomeCliente: { x: 405, y: 311, maxWidth: 235, font: 19, min: 12, color: '#1f2430', weight: 600, align:'left' },
-      data: { x: 738, y: 311, maxWidth: 150, font: 19, min: 12, color: '#1f2430', weight: 600, align:'left' },
-      nomeConsultor: { x: 842, y: 1414, maxWidth: 300, font: 31, min: 17, color: '#1b3f8a', weight: 700, align:'center' },
-      telefone: { x: 842, y: 1462, maxWidth: 305, font: 25, min: 15, color: '#1b3f8a', weight: 700, align:'center' }
+      nomeCliente: { x: 405, y: 311, maxWidth: 235, font: 19, min: 12, color: '#1f2430', weight: 600 },
+      data: { x: 738, y: 311, maxWidth: 150, font: 19, min: 12, color: '#1f2430', weight: 600 },
+      nomeConsultor: { x: 770, y: 1426, maxWidth: 275, font: 30, min: 18, color: '#ffffff', weight: 700 },
+      telefone: { x: 770, y: 1472, maxWidth: 275, font: 25, min: 16, color: '#ffffff', weight: 700 }
     };
 
     function today(){
@@ -131,13 +131,10 @@
     function drawText(text, opts){
       if(!text) return;
       const size = fitFont(text, opts.maxWidth, opts.font, opts.min, opts.weight);
-      ctx.save();
       ctx.font = `${opts.weight || 600} ${size}px Arial`;
       ctx.fillStyle = opts.color;
       ctx.textBaseline = 'middle';
-      ctx.textAlign = opts.align || 'left';
       ctx.fillText(text, opts.x, opts.y);
-      ctx.restore();
     }
 
     function draw(){
