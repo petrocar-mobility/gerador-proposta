@@ -110,7 +110,7 @@
       imgs[key] = img;
     });
 
-    const POS = {
+    const BASE = {
       width: 794,
       height: 1123,
       nomeCliente: { x: 296, y: 227, maxWidth: 172, font: 14, min: 10, color: '#1f2430', weight: 600, align:'left' },
@@ -140,41 +140,80 @@
       return `${regiao}_${adesao}`;
     }
 
-    function fitFont(text, maxWidth, startSize, minSize, weight){
+    function fitFont(targetCtx, text, maxWidth, startSize, minSize, weight){
       let size = startSize;
       while(size > minSize){
-        ctx.font = `${weight || 600} ${size}px Arial`;
-        if(ctx.measureText(text).width <= maxWidth) break;
+        targetCtx.font = `${weight || 600} ${size}px Arial`;
+        if(targetCtx.measureText(text).width <= maxWidth) break;
         size--;
       }
       return size;
     }
 
-    function drawText(text, opts){
+    function drawText(targetCtx, text, opts){
       if(!text) return;
-      const size = fitFont(text, opts.maxWidth, opts.font, opts.min, opts.weight);
-      ctx.save();
-      ctx.font = `${opts.weight || 600} ${size}px Arial`;
-      ctx.fillStyle = opts.color;
-      ctx.textBaseline = 'middle';
-      ctx.textAlign = opts.align || 'left';
-      ctx.fillText(text, opts.x, opts.y);
-      ctx.restore();
+      const size = fitFont(targetCtx, text, opts.maxWidth, opts.font, opts.min, opts.weight);
+      targetCtx.save();
+      targetCtx.font = `${opts.weight || 600} ${size}px Arial`;
+      targetCtx.fillStyle = opts.color;
+      targetCtx.textBaseline = 'middle';
+      targetCtx.textAlign = opts.align || 'left';
+      targetCtx.fillText(text, opts.x, opts.y);
+      targetCtx.restore();
+    }
+
+    function scaled(base, sx, sy){
+      return {
+        x: base.x * sx,
+        y: base.y * sy,
+        maxWidth: base.maxWidth * sx,
+        font: base.font * sy,
+        min: base.min * sy,
+        color: base.color,
+        weight: base.weight,
+        align: base.align
+      };
+    }
+
+    function renderToCanvas(multiplier = 1){
+      const img = imgs[currentKey()];
+      if(!img.complete || !img.naturalWidth) return null;
+
+      const out = document.createElement('canvas');
+      const w = Math.round(img.naturalWidth * multiplier);
+      const h = Math.round(img.naturalHeight * multiplier);
+      out.width = w;
+      out.height = h;
+      const outCtx = out.getContext('2d');
+      outCtx.imageSmoothingEnabled = true;
+      outCtx.imageSmoothingQuality = 'high';
+      outCtx.clearRect(0, 0, w, h);
+      outCtx.drawImage(img, 0, 0, w, h);
+
+      const sx = w / BASE.width;
+      const sy = h / BASE.height;
+
+      drawText(outCtx, (cliente.value || '').trim(), scaled(BASE.nomeCliente, sx, sy));
+      drawText(outCtx, fmtDate(data.value), scaled(BASE.data, sx, sy));
+      drawText(outCtx, (consultor.value || '').trim(), scaled(BASE.nomeConsultor, sx, sy));
+      drawText(outCtx, (telefone.value || '').trim(), scaled(BASE.telefone, sx, sy));
+
+      return out;
     }
 
     function draw(){
-      const img = imgs[currentKey()];
-      if(!img.complete){ img.onload = draw; return; }
-      canvas.width = POS.width;
-      canvas.height = POS.height;
+      const preview = renderToCanvas(1);
+      if(!preview){
+        const img = imgs[currentKey()];
+        if(img && !img.complete) img.onload = draw;
+        return;
+      }
+      canvas.width = preview.width;
+      canvas.height = preview.height;
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, 0, 0, POS.width, POS.height);
-      drawText((cliente.value || '').trim(), POS.nomeCliente);
-      drawText(fmtDate(data.value), POS.data);
-      drawText((consultor.value || '').trim(), POS.nomeConsultor);
-      drawText((telefone.value || '').trim(), POS.telefone);
+      ctx.drawImage(preview, 0, 0);
     }
 
     [cliente, data, consultor, telefone].forEach(el => el.addEventListener('input', draw));
@@ -205,23 +244,25 @@
     };
 
     document.getElementById('png').onclick = () => {
-      draw();
+      const exportCanvas = renderToCanvas(2);
+      if(!exportCanvas) return;
       const a = document.createElement('a');
       a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.png`;
-      a.href = canvas.toDataURL('image/png', 1.0);
+      a.href = exportCanvas.toDataURL('image/png', 1.0);
       a.click();
     };
 
     document.getElementById('pdf').onclick = () => {
-      draw();
       if(!window.jspdf){
         alert('Não foi possível carregar o gerador de PDF. Verifique sua internet e tente novamente.');
         return;
       }
+      const exportCanvas = renderToCanvas(2);
+      if(!exportCanvas) return;
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
+      const imgData = exportCanvas.toDataURL('image/png', 1.0);
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'NONE');
       pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`);
     };
 
