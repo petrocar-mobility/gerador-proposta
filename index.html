@@ -5,41 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Gerador de Proposta | Petrocar Mobility</title>
   <style>
-    :root{--blue:#009fe3;--navy:#123a78;--bg:#eef5fb;--card:#fff;--text:#152238}
+    :root{
+      --blue:#009fe3;
+      --navy:#173c81;
+      --bg:#eef5fb;
+      --card:#ffffff;
+      --text:#152238;
+      --muted:#6f8097;
+      --stroke:#cfdae6;
+    }
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1220px;margin:0 auto;padding:24px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-    h1{font-size:28px;margin:0;color:var(--navy)}
-    .sub{margin:5px 0 0;color:#637083;font-size:14px}
-    .panel{display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start}
+    .wrap{max-width:1280px;margin:0 auto;padding:24px}
+    h1{margin:0 0 6px;font-size:28px;color:var(--navy)}
+    .sub{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.55}
+    .panel{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
     .controls,.preview{background:var(--card);border-radius:18px;box-shadow:0 10px 30px rgba(14,43,78,.10)}
     .controls{padding:20px;position:sticky;top:16px}
-    label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px;color:#35445c}
-    input{width:100%;height:46px;border:1px solid #ccd8e5;border-radius:11px;padding:0 13px;font-size:16px;outline:none}
+    .preview{padding:14px;overflow:auto}
+    label{display:block;font-size:13px;font-weight:800;margin:14px 0 7px;color:#33445e}
+    input{width:100%;height:48px;border:1px solid var(--stroke);border-radius:12px;padding:0 14px;font-size:16px;color:var(--text);outline:none}
     input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,159,227,.12)}
     .segmented{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .segmented button{height:48px;border:1px solid #c6d6e7;background:#fff;border-radius:11px;font-weight:800;color:var(--navy);cursor:pointer}
+    .segmented button{height:48px;border:1px solid #c6d6e7;background:#fff;border-radius:12px;font-weight:800;color:var(--navy);cursor:pointer;font-size:15px}
     .segmented button.active{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff;border-color:transparent}
+    .mini,.hint{font-size:12px;line-height:1.55;color:#738197}
+    .mini{margin-top:6px}
     .actions{display:grid;gap:10px;margin-top:18px}
-    .primary,.secondary{height:50px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
+    .primary,.secondary{height:52px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
     .primary{background:linear-gradient(135deg,var(--blue),#3554a7);color:#fff}
     .secondary{background:#edf5fc;color:var(--navy)}
-    .hint{font-size:12px;line-height:1.5;color:#738197;margin-top:12px}
-    .preview{padding:14px;overflow:auto}
+    .hint{margin-top:14px}
     canvas{display:block;width:100%;height:auto;border-radius:10px;background:#fff}
-    .mini{font-size:12px;color:#607188;margin-top:6px}
-    @media(max-width:900px){.wrap{padding:14px}.panel{grid-template-columns:1fr}.controls{position:static}.top{align-items:flex-start}h1{font-size:22px}.preview{padding:8px}}
+    @media(max-width:900px){
+      .wrap{padding:14px}
+      .panel{grid-template-columns:1fr}
+      .controls{position:static}
+      h1{font-size:22px}
+      .preview{padding:8px}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
-      <div>
-        <h1>Gerador de Proposta Petrocar Mobility</h1>
-        <p class="sub">Preencha os dados, escolha região e adesão, e gere a proposta em PDF ou imagem.</p>
-      </div>
-    </div>
+    <h1>Gerador de Proposta Petrocar Mobility</h1>
+    <p class="sub">Agora o gerador usa somente <strong>2 artes</strong>: <strong>Sudeste</strong> e <strong>Nacional</strong>. O consultor digita manualmente o valor da adesão, e esse valor entra automaticamente em todos os espaços de investimento inicial.</p>
 
     <div class="panel">
       <section class="controls">
@@ -50,33 +60,33 @@
         <input id="data" type="date" />
 
         <label>Região da proposta</label>
-        <div class="segmented" id="regiaoGroup">
+        <div class="segmented">
           <button id="btnSudeste" class="active" type="button">Sudeste</button>
           <button id="btnNacional" type="button">Nacional</button>
         </div>
 
-        <label>Valor da adesão</label>
-        <div class="segmented" id="adesaoGroup">
-          <button id="btn149" class="active" type="button">R$ 149,90</button>
-          <button id="btn99" type="button">R$ 99,90</button>
-        </div>
+        <label for="adesaoValor">Valor da adesão</label>
+        <input id="adesaoValor" type="text" inputmode="decimal" placeholder="Ex.: 149,90" autocomplete="off" />
+        <div class="mini">O valor fica centralizado em azul e negrito em todos os quadradinhos brancos de <strong>INVESTIMENTO INICIAL</strong>.</div>
 
         <label for="consultor">Nome do consultor</label>
-        <input id="consultor" type="text" placeholder="Ex.: Nome do consultor" autocomplete="off" />
+        <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
 
-        <label for="telefone">Telefone do consultor / WhatsApp</label>
+        <label for="telefone">Telefone / WhatsApp do consultor</label>
         <input id="telefone" type="text" placeholder="Ex.: (22) 99999-9999" autocomplete="off" />
-        <div class="mini">O nome e o telefone/WhatsApp entram centralizados no quadro branco inferior.</div>
+        <div class="mini">O nome e o telefone ficam maiores e centralizados no quadro branco inferior.</div>
 
         <div class="actions">
-          <button id="pdf" class="primary" type="button">Compartilhar PDF</button>
+          <button id="pdf" class="primary" type="button">Gerar PDF</button>
           <button id="png" class="secondary" type="button">Baixar imagem</button>
         </div>
 
-        <p class="hint">O sistema identifica automaticamente a arte correta conforme a combinação escolhida: Sudeste/Nacional + adesão R$ 149,90 ou R$ 99,90.</p>
+        <p class="hint">As 2 artes do site estão em alta qualidade. O PDF e a imagem são exportados com qualidade alta.</p>
       </section>
 
-      <section class="preview"><canvas id="canvas" width="794" height="1123"></canvas></section>
+      <section class="preview">
+        <canvas id="canvas" width="2481" height="3509"></canvas>
+      </section>
     </div>
   </div>
 
@@ -84,23 +94,21 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+
     const cliente = document.getElementById('cliente');
     const data = document.getElementById('data');
     const consultor = document.getElementById('consultor');
     const telefone = document.getElementById('telefone');
+    const adesaoValor = document.getElementById('adesaoValor');
+
     const btnSudeste = document.getElementById('btnSudeste');
     const btnNacional = document.getElementById('btnNacional');
-    const btn149 = document.getElementById('btn149');
-    const btn99 = document.getElementById('btn99');
 
     let regiao = 'sudeste';
-    let adesao = '149';
 
     const imageFiles = {
-      'sudeste_149': 'sudeste-149.png',
-      'sudeste_99': 'sudeste-99.png',
-      'nacional_149': 'nacional-149.png',
-      'nacional_99': 'nacional-99.png'
+      sudeste: 'sudeste.png',
+      nacional: 'nacional.png'
     };
 
     const imgs = {};
@@ -110,51 +118,66 @@
       imgs[key] = img;
     });
 
-    const BASE = {
-      width: 794,
-      height: 1123,
-      nomeCliente: { x: 296, y: 227, maxWidth: 172, font: 14, min: 10, color: '#1f2430', weight: 600, align:'left' },
-      data: { x: 540, y: 227, maxWidth: 110, font: 14, min: 10, color: '#1f2430', weight: 600, align:'left' },
-      nomeConsultor: { x: 628, y: 1052, maxWidth: 225, font: 24, min: 14, color: '#1b3f8a', weight: 700, align:'center' },
-      telefone: { x: 628, y: 1082, maxWidth: 225, font: 21, min: 13, color: '#1b3f8a', weight: 700, align:'center' }
+    const LAYOUT = {
+      cliente: { x: 1040, y: 706, maxWidth: 520, font: 42, min: 20, color: '#1f2430', weight: 700, align: 'center' },
+      data: { x: 1770, y: 706, maxWidth: 250, font: 34, min: 18, color: '#1f2430', weight: 700, align: 'center' },
+      consultor: { x: 1917, y: 3342, maxWidth: 450, font: 66, min: 28, color: '#1b3f8a', weight: 700, align: 'center' },
+      telefone: { x: 1917, y: 3420, maxWidth: 450, font: 52, min: 20, color: '#1b3f8a', weight: 700, align: 'center' },
+      adesao: {
+        textColor: '#1452ad',
+        fill: '#ffffff',
+        radius: 12,
+        font: 48,
+        min: 20,
+        maxWidth: 290,
+        sudeste: [
+          { x: 322,  y: 2542, x1: 153,  y1: 2482, x2: 492,  y2: 2602 },
+          { x: 933,  y: 2542, x1: 764,  y1: 2482, x2: 1103, y2: 2602 },
+          { x: 1545, y: 2542, x1: 1376, y1: 2482, x2: 1715, y2: 2602 },
+          { x: 2157, y: 2542, x1: 1988, y1: 2482, x2: 2327, y2: 2602 }
+        ],
+        nacional: [
+          { x: 933,  y: 2542, x1: 764,  y1: 2482, x2: 1103, y2: 2602 },
+          { x: 1545, y: 2542, x1: 1376, y1: 2482, x2: 1715, y2: 2602 }
+        ]
+      }
     };
 
-    function today(){
+    function today() {
       const d = new Date();
       const z = n => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+      return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
     }
-    data.value = today();
 
-    function fmtDate(v){
-      if(!v) return '';
-      const [y,m,d] = v.split('-');
+    function fmtDate(v) {
+      if (!v) return '';
+      const [y, m, d] = v.split('-');
       return `${d}/${m}/${y}`;
     }
 
-    function safeName(v){
-      return (v || 'cliente').trim().replace(/[^a-z0-9áéíóúãõç _-]/gi,'').replace(/\s+/g,'-').toLowerCase() || 'cliente';
+    function safeName(v) {
+      return (v || 'cliente')
+        .trim()
+        .replace(/[^a-z0-9áéíóúãõç _-]/gi, '')
+        .replace(/\s+/g, '-')
+        .toLowerCase() || 'cliente';
     }
 
-    function currentKey(){
-      return `${regiao}_${adesao}`;
-    }
-
-    function fitFont(targetCtx, text, maxWidth, startSize, minSize, weight){
+    function fitFont(targetCtx, text, maxWidth, startSize, minSize, weight) {
       let size = startSize;
-      while(size > minSize){
-        targetCtx.font = `${weight || 600} ${size}px Arial`;
-        if(targetCtx.measureText(text).width <= maxWidth) break;
-        size--;
+      while (size > minSize) {
+        targetCtx.font = `${weight || 700} ${size}px Arial`;
+        if (targetCtx.measureText(text).width <= maxWidth) break;
+        size -= 1;
       }
       return size;
     }
 
-    function drawText(targetCtx, text, opts){
-      if(!text) return;
+    function drawText(targetCtx, text, opts) {
+      if (!text) return;
       const size = fitFont(targetCtx, text, opts.maxWidth, opts.font, opts.min, opts.weight);
       targetCtx.save();
-      targetCtx.font = `${opts.weight || 600} ${size}px Arial`;
+      targetCtx.font = `${opts.weight || 700} ${size}px Arial`;
       targetCtx.fillStyle = opts.color;
       targetCtx.textBaseline = 'middle';
       targetCtx.textAlign = opts.align || 'left';
@@ -162,132 +185,151 @@
       targetCtx.restore();
     }
 
-    function scaled(base, sx, sy){
-      return {
-        x: base.x * sx,
-        y: base.y * sy,
-        maxWidth: base.maxWidth * sx,
-        font: base.font * sy,
-        min: base.min * sy,
-        color: base.color,
-        weight: base.weight,
-        align: base.align
-      };
+    function roundRect(targetCtx, x, y, w, h, r, fillStyle) {
+      targetCtx.save();
+      targetCtx.beginPath();
+      targetCtx.moveTo(x + r, y);
+      targetCtx.lineTo(x + w - r, y);
+      targetCtx.quadraticCurveTo(x + w, y, x + w, y + r);
+      targetCtx.lineTo(x + w, y + h - r);
+      targetCtx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      targetCtx.lineTo(x + r, y + h);
+      targetCtx.quadraticCurveTo(x, y + h, x, y + h - r);
+      targetCtx.lineTo(x, y + r);
+      targetCtx.quadraticCurveTo(x, y, x + r, y);
+      targetCtx.closePath();
+      targetCtx.fillStyle = fillStyle;
+      targetCtx.fill();
+      targetCtx.restore();
     }
 
-    function renderToCanvas(multiplier = 1){
-      const img = imgs[currentKey()];
-      if(!img.complete || !img.naturalWidth) return null;
+    function normalizeMoney(raw) {
+      let value = String(raw || '').trim();
+      if (!value) return '';
+      value = value.replace(/R\$/gi, '').replace(/\s+/g, '');
+      const clean = value.replace(/[^0-9.,]/g, '');
+      if (!clean) return '';
 
+      const lastComma = clean.lastIndexOf(',');
+      const lastDot = clean.lastIndexOf('.');
+      const sepIndex = Math.max(lastComma, lastDot);
+      let intPart = '';
+      let decPart = '';
+
+      if (sepIndex >= 0) {
+        intPart = clean.slice(0, sepIndex).replace(/\D/g, '');
+        decPart = clean.slice(sepIndex + 1).replace(/\D/g, '');
+      } else {
+        const digits = clean.replace(/\D/g, '');
+        if (digits.length <= 2) {
+          intPart = '0';
+          decPart = digits.padStart(2, '0');
+        } else {
+          intPart = digits.slice(0, -2);
+          decPart = digits.slice(-2);
+        }
+      }
+
+      intPart = intPart.replace(/^0+(?=\d)/, '') || '0';
+      decPart = (decPart || '00').slice(0, 2).padEnd(2, '0');
+      return `${intPart},${decPart}`;
+    }
+
+    function renderAdesaoBoxes(targetCtx) {
+      const value = normalizeMoney(adesaoValor.value);
+      if (!value) return;
+      const display = `R$ ${value}`;
+      const boxes = LAYOUT.adesao[regiao];
+      boxes.forEach(box => {
+        roundRect(targetCtx, box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1, LAYOUT.adesao.radius, LAYOUT.adesao.fill);
+        drawText(targetCtx, display, {
+          x: box.x,
+          y: box.y,
+          maxWidth: LAYOUT.adesao.maxWidth,
+          font: LAYOUT.adesao.font,
+          min: LAYOUT.adesao.min,
+          color: LAYOUT.adesao.textColor,
+          weight: 700,
+          align: 'center'
+        });
+      });
+    }
+
+    function renderToCanvas() {
+      const img = imgs[regiao];
+      if (!img.complete || !img.naturalWidth) return null;
       const out = document.createElement('canvas');
-      const w = Math.round(img.naturalWidth * multiplier);
-      const h = Math.round(img.naturalHeight * multiplier);
-      out.width = w;
-      out.height = h;
+      out.width = img.naturalWidth;
+      out.height = img.naturalHeight;
       const outCtx = out.getContext('2d');
       outCtx.imageSmoothingEnabled = true;
       outCtx.imageSmoothingQuality = 'high';
-      outCtx.clearRect(0, 0, w, h);
-      outCtx.drawImage(img, 0, 0, w, h);
+      outCtx.drawImage(img, 0, 0, out.width, out.height);
 
-      const sx = w / BASE.width;
-      const sy = h / BASE.height;
-
-      drawText(outCtx, (cliente.value || '').trim(), scaled(BASE.nomeCliente, sx, sy));
-      drawText(outCtx, fmtDate(data.value), scaled(BASE.data, sx, sy));
-      drawText(outCtx, (consultor.value || '').trim(), scaled(BASE.nomeConsultor, sx, sy));
-      drawText(outCtx, (telefone.value || '').trim(), scaled(BASE.telefone, sx, sy));
-
+      renderAdesaoBoxes(outCtx);
+      drawText(outCtx, (cliente.value || '').trim(), LAYOUT.cliente);
+      drawText(outCtx, fmtDate(data.value), LAYOUT.data);
+      drawText(outCtx, (consultor.value || '').trim(), LAYOUT.consultor);
+      drawText(outCtx, (telefone.value || '').trim(), LAYOUT.telefone);
       return out;
     }
 
-    function draw(){
-      const preview = renderToCanvas(1);
-      if(!preview){
-        const img = imgs[currentKey()];
-        if(img && !img.complete) img.onload = draw;
+    function draw() {
+      const preview = renderToCanvas();
+      if (!preview) {
+        const img = imgs[regiao];
+        if (img && !img.complete) img.onload = draw;
         return;
       }
       canvas.width = preview.width;
       canvas.height = preview.height;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(preview, 0, 0);
     }
 
-    [cliente, data, consultor, telefone].forEach(el => el.addEventListener('input', draw));
+    function setRegiao(value) {
+      regiao = value;
+      btnSudeste.classList.toggle('active', value === 'sudeste');
+      btnNacional.classList.toggle('active', value === 'nacional');
+      draw();
+    }
 
-    btnSudeste.onclick = () => {
-      regiao = 'sudeste';
-      btnSudeste.classList.add('active');
-      btnNacional.classList.remove('active');
-      draw();
-    };
-    btnNacional.onclick = () => {
-      regiao = 'nacional';
-      btnNacional.classList.add('active');
-      btnSudeste.classList.remove('active');
-      draw();
-    };
-    btn149.onclick = () => {
-      adesao = '149';
-      btn149.classList.add('active');
-      btn99.classList.remove('active');
-      draw();
-    };
-    btn99.onclick = () => {
-      adesao = '99';
-      btn99.classList.add('active');
-      btn149.classList.remove('active');
-      draw();
-    };
+    btnSudeste.addEventListener('click', () => setRegiao('sudeste'));
+    btnNacional.addEventListener('click', () => setRegiao('nacional'));
 
-    document.getElementById('png').onclick = () => {
-      const exportCanvas = renderToCanvas(2);
-      if(!exportCanvas) return;
+    [cliente, data, consultor, telefone, adesaoValor].forEach(el => el.addEventListener('input', draw));
+    adesaoValor.addEventListener('blur', () => {
+      const normalized = normalizeMoney(adesaoValor.value);
+      if (normalized) adesaoValor.value = normalized;
+      draw();
+    });
+
+    document.getElementById('png').addEventListener('click', () => {
+      const exportCanvas = renderToCanvas();
+      if (!exportCanvas) return;
       const a = document.createElement('a');
-      a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.png`;
+      a.download = `proposta-petrocar-${safeName(cliente.value)}-${regiao}.png`;
       a.href = exportCanvas.toDataURL('image/png', 1.0);
       a.click();
-    };
+    });
 
-    document.getElementById('pdf').onclick = async () => {
-      if(!window.jspdf){
+    document.getElementById('pdf').addEventListener('click', () => {
+      if (!window.jspdf) {
         alert('Não foi possível carregar o gerador de PDF. Verifique sua internet e tente novamente.');
         return;
       }
-      // Para PDF, a resolução original já é suficiente para leitura e impressão.
-      // Evita gerar um arquivo gigante no iPhone.
-      const exportCanvas = renderToCanvas(1);
-      if(!exportCanvas) return;
+      const exportCanvas = renderToCanvas();
+      if (!exportCanvas) return;
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      // JPEG reduz drasticamente o tamanho. PNG sem compressão fazia o PDF chegar
-      // a mais de 100 MB e o WhatsApp não conseguia processar o documento.
-      const imgData = exportCanvas.toDataURL('image/jpeg', 0.84);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
-      const fileName = `proposta-petrocar-${safeName(cliente.value)}-${regiao}-${adesao}.pdf`;
-      const pdfBlob = pdf.output('blob');
-      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
+      const imgData = exportCanvas.toDataURL('image/png', 1.0);
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'NONE');
+      pdf.save(`proposta-petrocar-${safeName(cliente.value)}-${regiao}.pdf`);
+    });
 
-      // Compartilha somente o PDF. Não inclua title, text ou url aqui:
-      // no iPhone, qualquer URL blob enviada junto aparece como “1 Link e 1 Documento”
-      // e pode impedir o WhatsApp de receber corretamente o anexo.
-      if(navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })){
-        try {
-          await navigator.share({ files: [pdfFile] });
-          return;
-        } catch(error) {
-          // O cancelamento feito pelo próprio usuário não é um erro.
-          if(error && error.name === 'AbortError') return;
-        }
-      }
-
-      // Alternativa para navegadores sem compartilhamento de arquivos.
-      pdf.save(fileName);
-    };
-
+    data.value = today();
     Object.values(imgs).forEach(img => img.onload = draw);
     draw();
   </script>
