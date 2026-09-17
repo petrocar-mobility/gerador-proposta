@@ -67,7 +67,7 @@
 
         <label for="adesaoValor">Valor da adesão</label>
         <input id="adesaoValor" type="text" inputmode="decimal" placeholder="Ex.: 149,90" autocomplete="off" />
-        <div class="mini">O valor fica centralizado em azul e negrito nos quadradinhos brancos originais de <strong>INVESTIMENTO INICIAL</strong>, sem criar caixa branca extra.</div>
+        <div class="mini">Digite somente o valor da adesão, sem R$. O gerador usa o quadradinho branco que já existe na arte e centraliza o número ao lado do R$ fixo.</div>
 
         <label for="consultor">Nome do consultor</label>
         <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
@@ -220,7 +220,7 @@
     function renderAdesaoBoxes(targetCtx) {
       const value = normalizeMoney(adesaoValor.value);
       if (!value) return;
-      const display = `R$ ${value}`;
+      const display = value;
       const boxes = LAYOUT.adesao[regiao];
       boxes.forEach(box => {
         drawText(targetCtx, display, {
