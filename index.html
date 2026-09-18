@@ -20,15 +20,14 @@
     body{margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(180deg,#f4f8fc 0%,var(--bg) 100%);color:var(--text)}
     .wrap{max-width:1240px;margin:0 auto;padding:28px 18px 48px}
     .hero{background:var(--card);border:1px solid #e5edf6;border-radius:30px;padding:24px;box-shadow:var(--shadow);margin-bottom:22px}
-    h1{margin:0 0 10px;font-size:28px;line-height:1.1}
-    .sub{margin:0;color:var(--muted);font-size:15px;line-height:1.55}
+    h1{margin:0;font-size:28px;line-height:1.1}
+    .sub{margin:10px 0 0;color:var(--muted);font-size:15px;line-height:1.55}
     .grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;align-items:start}
     .panel{background:var(--card);border:1px solid #e5edf6;border-radius:28px;padding:22px;box-shadow:var(--shadow)}
     .field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
     label{font-size:14px;font-weight:700;color:#23314f}
     input,select{width:100%;height:48px;border:1px solid var(--stroke);border-radius:12px;padding:0 14px;font-size:16px;color:var(--text);outline:none;background:#fff}
     input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,159,227,.12)}
-    .mini{font-size:12px;color:var(--muted);line-height:1.45;margin-top:2px}
     .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}
     button{height:58px;border:0;border-radius:18px;font-size:18px;font-weight:800;cursor:pointer}
     .primary{background:linear-gradient(90deg,var(--blue),var(--blue2));color:#fff}
@@ -49,7 +48,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>Gerador de proposta Petrocar Mobility</h1>
-      <p class="sub">O gerador usa <strong>16 artes base</strong>: <strong>8 do Sudeste</strong> e <strong>8 do Nacional</strong>. Basta escolher a região, selecionar a adesão correta e preencher os dados. O valor da adesão já está escrito na arte, então o sistema não adiciona nada por cima dele.</p>
+      <p class="sub">Preencha os dados abaixo e gere sua proposta.</p>
     </div>
 
     <div class="grid">
@@ -83,7 +82,7 @@
 
         <div class="field">
           <label for="data">Data</label>
-          <input id="data" type="text" placeholder="Ex.: 17/09/2026" autocomplete="off" />
+          <input id="data" type="date" autocomplete="off" />
         </div>
 
         <div class="field">
@@ -94,15 +93,12 @@
         <div class="field">
           <label for="telefone">Telefone / WhatsApp</label>
           <input id="telefone" type="text" placeholder="Ex.: (22) 99830-2121" autocomplete="off" />
-          <div class="mini">O nome do cliente e a data ficam centralizados no quadro superior. O nome do consultor e o telefone ficam centralizados no quadro branco inferior.</div>
         </div>
 
         <div class="btns">
           <button class="primary" id="pdfBtn" type="button">Gerar PDF</button>
           <button class="secondary" id="imgBtn" type="button">Baixar imagem</button>
         </div>
-
-        <div class="helper">As 16 artes base foram extraídas do PDF em alta qualidade. O gerador apenas escolhe a arte correta e posiciona os textos.</div>
       </div>
 
       <div class="previewCard">
@@ -140,10 +136,10 @@
     };
 
     const LAYOUT = {
-      cliente:   { x: 760,  y: 515, maxWidth: 370, font: 35, min: 18, color: '#1f2430', weight: 700, align: 'center' },
-      data:      { x: 1330, y: 510, maxWidth: 250, font: 33, min: 18, color: '#1f2430', weight: 700, align: 'center' },
-      consultor: { x: 1398, y: 2417, maxWidth: 500, font: 40, min: 20, color: '#25438d', weight: 700, align: 'center' },
-      telefone:  { x: 1398, y: 2470, maxWidth: 500, font: 34, min: 18, color: '#25438d', weight: 700, align: 'center' }
+      cliente:   { x: 760,  y: 528, maxWidth: 370, font: 38, min: 20, color: '#1f2430', weight: 700, align: 'center' },
+      data:      { x: 1330, y: 528, maxWidth: 260, font: 36, min: 20, color: '#1f2430', weight: 700, align: 'center' },
+      consultor: { x: 1398, y: 2405, maxWidth: 540, font: 52, min: 24, color: '#25438d', weight: 700, align: 'center' },
+      telefone:  { x: 1398, y: 2470, maxWidth: 540, font: 46, min: 22, color: '#25438d', weight: 700, align: 'center' }
     };
 
     const regiao = document.getElementById('regiao');
@@ -186,6 +182,22 @@
       return ASSET_MAP[regiao.value][adesao.value];
     }
 
+    function formatDateForArtwork(value) {
+      if (!value) return '';
+      const parts = value.split('-');
+      if (parts.length !== 3) return value;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function setTodayIfEmpty() {
+      if (!data.value) {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const local = new Date(now.getTime() - offset * 60000);
+        data.value = local.toISOString().slice(0,10);
+      }
+    }
+
     async function loadImage(src) {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -211,18 +223,19 @@
       ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
       ctx.drawImage(img, 0, 0, targetCanvas.width, targetCanvas.height);
       drawText(ctx, cliente.value, LAYOUT.cliente);
-      drawText(ctx, data.value, LAYOUT.data);
+      drawText(ctx, formatDateForArtwork(data.value), LAYOUT.data);
       drawText(ctx, consultor.value, LAYOUT.consultor);
       drawText(ctx, telefone.value, LAYOUT.telefone);
     }
 
     async function draw() {
+      setTodayIfEmpty();
       await renderTo(pctx, preview);
     }
 
     function fileSlug(text) {
       return String(text || 'cliente')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
         .toLowerCase().replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '') || 'cliente';
     }
@@ -250,10 +263,12 @@
     }
 
     [regiao, adesao].forEach(el => el.addEventListener('change', draw));
-    [cliente, data, consultor, telefone].forEach(el => el.addEventListener('input', draw));
+    [cliente, consultor, telefone].forEach(el => el.addEventListener('input', draw));
+    data.addEventListener('change', draw);
     pdfBtn.addEventListener('click', exportPdf);
     imgBtn.addEventListener('click', exportImage);
 
+    setTodayIfEmpty();
     draw();
   </script>
 </body>
