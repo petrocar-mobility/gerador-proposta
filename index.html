@@ -250,10 +250,26 @@
       const exportCanvas = document.createElement('canvas');
       const ectx = exportCanvas.getContext('2d');
       await renderTo(ectx, exportCanvas);
-      const a = document.createElement('a');
-      a.href = exportCanvas.toDataURL('image/png');
-      a.download = `proposta-petrocar-${fileSlug(cliente.value || regiaoAtual)}-${regiaoAtual}-${adesao.value.replace(',', '-')}.png`;
-      a.click();
+
+      const filename = `proposta-petrocar-${fileSlug(cliente.value || regiaoAtual)}-${regiaoAtual}-${adesao.value.replace(',', '-')}.png`;
+
+      exportCanvas.toBlob((blob) => {
+        if (!blob) {
+          alert('Não foi possível gerar a imagem. Tente novamente.');
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }, 'image/png');
     }
 
     function buildPdfFile() {
