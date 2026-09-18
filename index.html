@@ -28,8 +28,12 @@
     label{font-size:14px;font-weight:700;color:#23314f}
     input,select{width:100%;height:48px;border:1px solid var(--stroke);border-radius:12px;padding:0 14px;font-size:16px;color:var(--text);outline:none;background:#fff}
     input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,159,227,.12)}
+    .regionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .regionBtn{height:48px;border:1px solid var(--stroke);border-radius:14px;background:#fff;color:#294264;font-size:16px;font-weight:800;cursor:pointer;transition:.18s ease}
+    .regionBtn.active{background:linear-gradient(90deg,var(--blue),var(--blue2));border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(53,95,189,.18)}
+    .regionBtn:not(.active):hover{border-color:#b9cce2;background:#f8fbff}
     .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}
-    button{height:58px;border:0;border-radius:18px;font-size:18px;font-weight:800;cursor:pointer}
+    button.action{height:58px;border:0;border-radius:18px;font-size:18px;font-weight:800;cursor:pointer}
     .primary{background:linear-gradient(90deg,var(--blue),var(--blue2));color:#fff}
     .secondary{background:#eaf1f8;color:#203f84}
     .previewCard{background:var(--card);border:1px solid #e5edf6;border-radius:28px;padding:14px;box-shadow:var(--shadow)}
@@ -54,11 +58,21 @@
     <div class="grid">
       <div class="panel">
         <div class="field">
-          <label for="regiao">Região</label>
-          <select id="regiao">
-            <option value="sudeste">Sudeste</option>
-            <option value="nacional">Nacional</option>
-          </select>
+          <label for="cliente">Nome do cliente</label>
+          <input id="cliente" type="text" placeholder="Ex.: João da Silva" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="data">Data</label>
+          <input id="data" type="date" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label>Região</label>
+          <div class="regionRow">
+            <button class="regionBtn active" type="button" data-regiao="sudeste" id="btnSudeste">Sudeste</button>
+            <button class="regionBtn" type="button" data-regiao="nacional" id="btnNacional">Nacional</button>
+          </div>
         </div>
 
         <div class="field">
@@ -76,28 +90,18 @@
         </div>
 
         <div class="field">
-          <label for="cliente">Nome do cliente</label>
-          <input id="cliente" type="text" placeholder="Ex.: João da Silva" autocomplete="off" />
-        </div>
-
-        <div class="field">
-          <label for="data">Data</label>
-          <input id="data" type="date" autocomplete="off" />
-        </div>
-
-        <div class="field">
           <label for="consultor">Nome do consultor</label>
-          <input id="consultor" type="text" placeholder="Ex.: Karen Carvalho" autocomplete="off" />
+          <input id="consultor" type="text" placeholder="Ex.: Nome do consultor" autocomplete="off" />
         </div>
 
         <div class="field">
-          <label for="telefone">Telefone / WhatsApp</label>
-          <input id="telefone" type="text" placeholder="Ex.: (22) 99830-2121" autocomplete="off" />
+          <label for="telefone">Telefone do consultor</label>
+          <input id="telefone" type="text" placeholder="Ex.: (00) 00000-0000" autocomplete="off" />
         </div>
 
         <div class="btns">
-          <button class="primary" id="pdfBtn" type="button">Gerar PDF</button>
-          <button class="secondary" id="imgBtn" type="button">Baixar imagem</button>
+          <button class="action primary" id="whatsappBtn" type="button">Enviar no WhatsApp</button>
+          <button class="action secondary" id="imgBtn" type="button">Baixar imagem</button>
         </div>
       </div>
 
@@ -136,13 +140,14 @@
     };
 
     const LAYOUT = {
-      cliente:   { x: 760,  y: 528, maxWidth: 370, font: 38, min: 20, color: '#1f2430', weight: 700, align: 'center' },
-      data:      { x: 1330, y: 528, maxWidth: 260, font: 36, min: 20, color: '#1f2430', weight: 700, align: 'center' },
-      consultor: { x: 1398, y: 2405, maxWidth: 540, font: 52, min: 24, color: '#25438d', weight: 700, align: 'center' },
-      telefone:  { x: 1398, y: 2470, maxWidth: 540, font: 46, min: 22, color: '#25438d', weight: 700, align: 'center' }
+      cliente:   { x: 760,  y: 542,  maxWidth: 370, font: 40, min: 20, color: '#1f2430', weight: 700, align: 'center' },
+      data:      { x: 1330, y: 542,  maxWidth: 270, font: 38, min: 20, color: '#1f2430', weight: 700, align: 'center' },
+      consultor: { x: 1398, y: 2390, maxWidth: 620, font: 62, min: 26, color: '#25438d', weight: 700, align: 'center' },
+      telefone:  { x: 1398, y: 2470, maxWidth: 620, font: 56, min: 24, color: '#25438d', weight: 700, align: 'center' }
     };
 
-    const regiao = document.getElementById('regiao');
+    let regiaoAtual = 'sudeste';
+
     const adesao = document.getElementById('adesao');
     const cliente = document.getElementById('cliente');
     const data = document.getElementById('data');
@@ -150,8 +155,9 @@
     const telefone = document.getElementById('telefone');
     const preview = document.getElementById('preview');
     const pctx = preview.getContext('2d');
-    const pdfBtn = document.getElementById('pdfBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
     const imgBtn = document.getElementById('imgBtn');
+    const regionBtns = Array.from(document.querySelectorAll('.regionBtn'));
 
     let baseImage = null;
 
@@ -179,7 +185,7 @@
     }
 
     function currentAssetName() {
-      return ASSET_MAP[regiao.value][adesao.value];
+      return ASSET_MAP[regiaoAtual][adesao.value];
     }
 
     function formatDateForArtwork(value) {
@@ -246,26 +252,60 @@
       await renderTo(ectx, exportCanvas);
       const a = document.createElement('a');
       a.href = exportCanvas.toDataURL('image/png');
-      a.download = `proposta-petrocar-${fileSlug(cliente.value || regiao.value)}-${regiao.value}-${adesao.value.replace(',', '-')}.png`;
+      a.download = `proposta-petrocar-${fileSlug(cliente.value || regiaoAtual)}-${regiaoAtual}-${adesao.value.replace(',', '-')}.png`;
       a.click();
     }
 
-    async function exportPdf() {
-      const exportCanvas = document.createElement('canvas');
-      const ectx = exportCanvas.getContext('2d');
-      await renderTo(ectx, exportCanvas);
-      const imgData = exportCanvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    function buildPdfFile() {
+      const imgData = preview.toDataURL('image/jpeg', 0.82);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      pdf.addImage(imgData, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
-      pdf.save(`proposta-petrocar-${fileSlug(cliente.value || regiao.value)}-${regiao.value}-${adesao.value.replace(',', '-')}.pdf`);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'MEDIUM');
+
+      const filename = `proposta-petrocar-${fileSlug(cliente.value || regiaoAtual)}-${regiaoAtual}-${adesao.value.replace(',', '-')}.pdf`;
+      const blob = pdf.output('blob');
+      return new File([blob], filename, { type: 'application/pdf' });
     }
 
-    [regiao, adesao].forEach(el => el.addEventListener('change', draw));
+    async function sharePdfOnWhatsApp() {
+      const file = buildPdfFile();
+
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        try {
+          await navigator.share({ files: [file], title: 'Proposta Petrocar Mobility' });
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      alert('Seu navegador não permitiu anexar o PDF diretamente. O arquivo foi baixado para você enviar pelo WhatsApp.');
+    }
+
+    function setRegiao(novaRegiao) {
+      regiaoAtual = novaRegiao;
+      regionBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.regiao === novaRegiao));
+      baseImage = null;
+      draw();
+    }
+
+    regionBtns.forEach(btn => {
+      btn.addEventListener('click', () => setRegiao(btn.dataset.regiao));
+    });
+
+    adesao.addEventListener('change', () => { baseImage = null; draw(); });
     [cliente, consultor, telefone].forEach(el => el.addEventListener('input', draw));
     data.addEventListener('change', draw);
-    pdfBtn.addEventListener('click', exportPdf);
+    whatsappBtn.addEventListener('click', sharePdfOnWhatsApp);
     imgBtn.addEventListener('click', exportImage);
 
     setTodayIfEmpty();
